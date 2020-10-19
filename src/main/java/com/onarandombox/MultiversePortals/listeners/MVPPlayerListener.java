@@ -37,6 +37,7 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 public class MVPPlayerListener implements Listener {
 
@@ -64,8 +65,6 @@ public class MVPPlayerListener implements Listener {
     public void playerBucketFill(PlayerBucketFillEvent event) {
         this.plugin.log(Level.FINER, "Fill: ");
         this.plugin.log(Level.FINER, "Block Clicked: " + event.getBlockClicked() + ":" + event.getBlockClicked().getType());
-        // PlayerBucketFillEvent.getBlockClicked() returns the block that filled the bucket, so no need to translate the location!
-        this.plugin.log(Level.FINER, "No need to translate this location!");
 
         PortalPlayerSession ps = this.plugin.getPortalSession(event.getPlayer());
         MVPortal portal = portalManager.getPortal(event.getPlayer(), event.getBlockClicked().getLocation());
@@ -161,12 +160,14 @@ public class MVPPlayerListener implements Listener {
 
         Material itemType = plugin.getWandMaterial();
         // If we Found WorldEdit, return, we're not needed here.
-        // If the item is not the Wand we've stetup we're not needed either
+        // If the item is not the Wand we've setup we're not needed either
         // If the player doesn't have the perms, return also.
+        // Also return if this isn't the player's main hand
         WorldEditConnection worldEdit = plugin.getWorldEditConnection();
         if ((worldEdit != null && worldEdit.isConnected())
                 || event.getPlayer().getItemInHand().getType() != itemType
-                || !this.plugin.getCore().getMVPerms().hasPermission(event.getPlayer(), "multiverse.portal.create", true)) {
+                || !this.plugin.getCore().getMVPerms().hasPermission(event.getPlayer(), "multiverse.portal.create", true)
+                || event.getHand() != EquipmentSlot.HAND) {
             return;
         }
 
@@ -237,7 +238,7 @@ public class MVPPlayerListener implements Listener {
                     event.setCancelled(true);
                     return;
                 }
-                // If they're using Access and they don't have permission and they're NOT excempt, return, they're not allowed to tp.
+                // If they're using Access and they don't have permission and they're NOT exempt, return, they're not allowed to tp.
                 // No longer checking exemption status
                 if (MultiversePortals.EnforcePortalAccess && !this.plugin.getCore().getMVPerms().hasPermission(event.getPlayer(), portal.getPermission().getName(), true)) {
                     this.helper.stateFailure(p.getDisplayName(), portal.getName());
